@@ -32,8 +32,8 @@ export async function PUT(req, { params }) {
                 loanAmount: parseFloat(loanAmount),
                 annualInterestRate: parseFloat(annualInterestRate),
                 emiAmount: parseFloat(emiAmount),
-                currentBalance: parseFloat(currentBalance),
-                monthsLeft: parseInt(monthsLeft, 10),
+                // currentBalance: parseFloat(currentBalance),
+                // monthsLeft: parseInt(monthsLeft, 10),
                 loanStartDate: new Date(loanStartDate),
             },
         });

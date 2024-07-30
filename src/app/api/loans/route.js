@@ -19,8 +19,6 @@ export async function POST(req) {
         loanAmount,
         annualInterestRate,
         emiAmount,
-        currentBalance,
-        monthsLeft,
         loanStartDate
     } = payload;
 
@@ -36,10 +34,7 @@ export async function POST(req) {
             loanAmount: parseFloat(loanAmount),
             annualInterestRate: parseFloat(annualInterestRate),
             emiAmount: parseFloat(emiAmount),
-            currentBalance: parseFloat(currentBalance),
-            monthsLeft: parseInt(monthsLeft, 10),
             loanStartDate: new Date(loanStartDate),
-
         }
     });
 
