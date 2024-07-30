@@ -84,16 +84,16 @@ const Home = () => {
   // -----------------
 
   return (
-    <div className="flex flex-col items-center p-2">
-      <div className="w-full max-w-full overflow-x-auto">
-        <button
-          onClick={() => openModal()}
-          className="bg-blue-500 text-white px-4 py-2 rounded-md mb-4"
-        >
-          Add Loan
-        </button>
-
-        <h2 className="text-2xl font-bold mb-4">Loan List</h2>
+    <>
+      <div className="w-full max-w-full overflow-x-auto ">
+        <div className='flex justify-between px-12'>
+          <h2 className="text-2xl font-bold mb-4">Loan List</h2>
+          <button
+            onClick={() => openModal()}
+            className="bg-blue-500 text-white px-4 py-2 rounded-md mb-4">
+            Add Loan
+          </button>
+        </div>
         <div className="">
           <table className="min-w-full bg-white border text-sm">
             <thead>
@@ -150,7 +150,7 @@ const Home = () => {
           onClose={closeModal}
         />
       )}
-    </div>
+    </>
   );
 }
 
