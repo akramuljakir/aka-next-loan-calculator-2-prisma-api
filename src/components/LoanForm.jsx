@@ -9,7 +9,6 @@ const LoanForm = ({ loan, onSave, onClose }) => {
         annualInterestRate: '',
         emiAmount: '',
         loanStartDate: '',
-
     });
 
     useEffect(() => {
@@ -19,7 +18,6 @@ const LoanForm = ({ loan, onSave, onClose }) => {
             annualInterestRate: '',
             emiAmount: '',
             loanStartDate: '',
-
         });
     }, [loan]);
 
@@ -30,30 +28,7 @@ const LoanForm = ({ loan, onSave, onClose }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // ---------------
-        // try {
-        //     const response = await fetch('/api/loans', {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //         },
-        //         body: JSON.stringify(loanForm),
-        //     });
-
-        //     const result = await response.json();
-
-        //     if (response.ok) {
-        //         onSave(result.result);
-        //     } else {
-        //         console.error('Error adding loan:', result);
-        //     }
-        // } catch (error) {
-        //     console.error('Error adding loan:', error);
-        // }
-        // -----------------------
-
         onSave(loanForm);
-
         onClose();
     };
 

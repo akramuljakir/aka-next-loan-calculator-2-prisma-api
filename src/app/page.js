@@ -75,6 +75,14 @@ const Home = () => {
     }
   };
 
+  // ---------------
+
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+  // -----------------
+
   return (
     <div className="flex flex-col items-center p-2">
       <div className="w-full max-w-full overflow-x-auto">
@@ -113,7 +121,7 @@ const Home = () => {
                   <td className="border px-4 py-2">{loan.emiAmount}</td>
                   {/* <td className="border px-4 py-2">{loan.currentBalance}</td> */}
                   {/* <td className="border px-4 py-2">{loan.monthsLeft}</td> */}
-                  <td className="border px-4 py-2">{loan.loanStartDate}</td>
+                  <td className="border px-4 py-2">{formatDate(loan.loanStartDate)}</td>
                   <td className="border px-4 py-2 w-36">
                     <button
                       onClick={() => openModal(loan)}
