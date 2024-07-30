@@ -5,20 +5,36 @@ import Link from 'next/link';
 
 const LoansPage = () => {
     const [loans, setLoans] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const savedLoans = JSON.parse(localStorage.getItem('loans')) || [];
-        setLoans(savedLoans);
+        const fetchLoans = async () => {
+            try {
+                const response = await fetch('/api/loans');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch loans');
+                }
+                const data = await response.json();
+                setLoans(data.data);
+                console.log(data.data);
+            } catch (error) {
+                console.error('Error fetching loans:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchLoans();
     }, []);
 
-    if (loans.length === 0) {
-        return <div>Loading...</div>;
-    }
+    // if (loading) {
+    //     return <div>Loading...</div>;
+    // }
 
     return (
-        <div className="container mx-auto p-4 ">
-            <h1 className="text-2xl font-bold mb-4">All Loans</h1>
-            <div className="overflow-x-auto ">
+        <>
+            <h1 className="text-2xl font-bold mb-4 mx-10">All Loans</h1>
+            <div className="w-full">
                 <table className="min-w-full bg-white border border-gray-200">
                     <thead>
                         <tr>
@@ -48,7 +64,7 @@ const LoansPage = () => {
                     </tbody>
                 </table>
             </div>
-        </div>
+        </>
     );
 };
 
