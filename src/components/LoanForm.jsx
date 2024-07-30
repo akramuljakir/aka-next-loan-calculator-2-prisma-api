@@ -1,9 +1,8 @@
-//src/components/LoanForm.jsx
 import { useState, useEffect } from 'react';
 
 const LoanForm = ({ loan, onSave, onClose }) => {
-    console.log(loan, onSave, onClose);
-    const [loanForm, setLoanForm] = useState(loan || {
+    // Initialize state with loan data or default values
+    const [loanForm, setLoanForm] = useState({
         loanName: '',
         loanAmount: '',
         annualInterestRate: '',
@@ -11,21 +10,39 @@ const LoanForm = ({ loan, onSave, onClose }) => {
         loanStartDate: '',
     });
 
+    // Function to format date into YYYY-MM-DD
+    const formatDate = (date) => {
+        return date ? new Date(date).toISOString().split('T')[0] : '';
+    };
+
+    // Update form state when loan prop changes
     useEffect(() => {
-        setLoanForm(loan || {
-            loanName: '',
-            loanAmount: '',
-            annualInterestRate: '',
-            emiAmount: '',
-            loanStartDate: '',
-        });
+        if (loan) {
+            setLoanForm({
+                loanName: loan.loanName || '',
+                loanAmount: loan.loanAmount || '',
+                annualInterestRate: loan.annualInterestRate || '',
+                emiAmount: loan.emiAmount || '',
+                loanStartDate: formatDate(loan.loanStartDate) || '',
+            });
+        } else {
+            setLoanForm({
+                loanName: '',
+                loanAmount: '',
+                annualInterestRate: '',
+                emiAmount: '',
+                loanStartDate: '',
+            });
+        }
     }, [loan]);
 
+    // Handle form input changes
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setLoanForm({ ...loanForm, [name]: value });
     };
 
+    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
         onSave(loanForm);
