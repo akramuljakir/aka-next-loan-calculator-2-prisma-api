@@ -1,3 +1,4 @@
+//src/app/page.js
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -93,8 +94,8 @@ const Home = () => {
                 <th className="border px-4 py-2 w-30">Loan Amount</th>
                 <th className="border px-4 py-2">Interest Rate</th>
                 <th className="border px-4 py-2">EMI Amount</th>
-                <th className="border px-4 py-2">Current Balance</th>
-                <th className="border px-4 py-2">Months Left</th>
+                {/* <th className="border px-4 py-2">Current Balance</th>
+                <th className="border px-4 py-2">Months Left</th> */}
                 <th className="border px-4 py-2">Start Date</th>
                 <th className="border px-4 py-2 w-44">Actions</th>
               </tr>
@@ -110,8 +111,8 @@ const Home = () => {
                   <td className="border px-4 py-2">{loan.loanAmount}</td>
                   <td className="border px-4 py-2">{loan.annualInterestRate}</td>
                   <td className="border px-4 py-2">{loan.emiAmount}</td>
-                  <td className="border px-4 py-2">{loan.currentBalance}</td>
-                  <td className="border px-4 py-2">{loan.monthsLeft}</td>
+                  {/* <td className="border px-4 py-2">{loan.currentBalance}</td> */}
+                  {/* <td className="border px-4 py-2">{loan.monthsLeft}</td> */}
                   <td className="border px-4 py-2">{loan.loanStartDate}</td>
                   <td className="border px-4 py-2 w-36">
                     <button
