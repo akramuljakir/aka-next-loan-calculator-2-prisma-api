@@ -55,7 +55,7 @@ const LoansPage = () => {
                                 <td className="px-4 py-2 border-b">{loan.emiAmount}</td>
                                 <td className="px-4 py-2 border-b">{loan.loanStartDate}</td>
                                 <td className="px-4 py-2 border-b">
-                                    <Link href={`/loans/${index}`} className="text-blue-500 hover:underline">
+                                    <Link href={`/loans/${loan.id}`} className="text-blue-500 hover:underline">
                                         View Details
                                     </Link>
                                 </td>
