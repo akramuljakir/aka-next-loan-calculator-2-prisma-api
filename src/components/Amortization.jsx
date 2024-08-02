@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const Amortization = ({ loan }) => {
+const Amortization = ({ loan, currentMonth }) => {
     const [amortizationSchedule, setAmortizationSchedule] = useState([]);
 
     useEffect(() => {
@@ -54,6 +54,15 @@ const Amortization = ({ loan }) => {
         setAmortizationSchedule(schedule);
     };
 
+    const isCurrentMonth = (date) => {
+        const targetDate = new Date(date);
+        const targetMonth = targetDate.toLocaleString('default', { month: 'long' });
+        const targetYear = targetDate.getFullYear();
+
+        const [currentMonthName, currentYear] = currentMonth.split(' ');
+        return targetMonth === currentMonthName && targetYear === parseInt(currentYear);
+    };
+
     if (!loan) {
         return <div>Loading...</div>;
     }
@@ -73,7 +82,7 @@ const Amortization = ({ loan }) => {
                 </thead>
                 <tbody>
                     {amortizationSchedule.map((payment, index) => (
-                        <tr key={index}>
+                        <tr key={index} className={isCurrentMonth(payment.date) ? 'bg-yellow-100' : ''}>
                             <td className="px-4 py-2 border-b">{payment.installment}</td>
                             <td className="px-4 py-2 border-b">{payment.date}</td>
                             <td className="px-4 py-2 border-b">{payment.amount}</td>
