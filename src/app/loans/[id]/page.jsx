@@ -1,3 +1,5 @@
+// src/app/loans/[id]
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,7 +11,11 @@ const Page = ({ params }) => {
     const [currentBalance, setCurrentBalance] = useState(null);
     const [monthsLeft, setMonthsLeft] = useState(null);
     const [totalEmiPaid, setTotalEmiPaid] = useState(0);
+    const [totalInterestPaid, setTotalInterestPaid] = useState(0);
+    const [totalCapital, setTotalCapital] = useState(0);
     const [currentMonth, setCurrentMonth] = useState('');
+    const [loanEndMonth, setLoanEndMonth] = useState('');
+    const [emIsPaid, setEmIsPaid] = useState(0); // State for number of EMIs paid
 
     useEffect(() => {
         async function getLoans() {
@@ -36,9 +42,17 @@ const Page = ({ params }) => {
             calculateCurrentBalance();
             calculateMonthsLeft();
             calculateTotalEmiPaid();
-            setCurrentMonth(new Date().toLocaleString('default', { month: 'long' }));
+            calculateTotalInterestPaid();
+            calculateTotalCapital();
+            setCurrentMonth(new Date().toLocaleString('default', { month: 'long', year: 'numeric' }));
         }
     }, [loan]);
+
+    useEffect(() => {
+        if (monthsLeft !== null) {
+            calculateLoanEndMonth();
+        }
+    }, [monthsLeft]);
 
     const handleChange = (event) => {
         const selectedLoanId = parseInt(event.target.value);
@@ -87,7 +101,6 @@ const Page = ({ params }) => {
 
     const calculateTotalEmiPaid = () => {
         if (!loan) return;
-        const monthlyInterestRate = parseFloat(loan.annualInterestRate) / 12 / 100;
         const emiAmount = parseFloat(loan.emiAmount);
         const loanStartDate = new Date(loan.loanStartDate);
         const currentDate = new Date();
@@ -95,6 +108,41 @@ const Page = ({ params }) => {
 
         let totalPaid = emiAmount * monthsElapsed;
         setTotalEmiPaid(totalPaid.toFixed(2));
+        setEmIsPaid(monthsElapsed); // Update number of EMIs paid
+    };
+
+    const calculateTotalInterestPaid = () => {
+        if (!loan) return;
+        const monthlyInterestRate = parseFloat(loan.annualInterestRate) / 12 / 100;
+        const emiAmount = parseFloat(loan.emiAmount);
+        const loanStartDate = new Date(loan.loanStartDate);
+        const currentDate = new Date();
+        const monthsElapsed = Math.floor((currentDate - loanStartDate) / (1000 * 60 * 60 * 24 * 30));
+
+        let totalInterest = 0;
+        let remainingBalance = parseFloat(loan.loanAmount);
+        for (let i = 0; i < monthsElapsed; i++) {
+            const interest = remainingBalance * monthlyInterestRate;
+            totalInterest += interest;
+            const principal = emiAmount - interest;
+            remainingBalance -= principal;
+        }
+
+        setTotalInterestPaid(totalInterest.toFixed(2));
+    };
+
+    const calculateTotalCapital = () => {
+        if (!loan) return;
+        const emiAmount = parseFloat(loan.emiAmount);
+        const totalPaid = totalEmiPaid - totalInterestPaid;
+        setTotalCapital(totalPaid.toFixed(2));
+    };
+
+    const calculateLoanEndMonth = () => {
+        if (!loan || monthsLeft === null) return;
+        const loanStartDate = new Date(loan.loanStartDate);
+        const loanEndDate = new Date(loanStartDate.setMonth(loanStartDate.getMonth() + monthsLeft));
+        setLoanEndMonth(loanEndDate.toLocaleString('default', { month: 'long', year: 'numeric' }));
     };
 
     if (!loan) {
@@ -113,14 +161,30 @@ const Page = ({ params }) => {
                 </select>
             </div>
             <div className="grid grid-cols-3 gap-4 bg-white p-4 rounded-lg shadow-md border">
-                <p><strong>Loan ID:</strong> {loan.id}</p>
-                <p><strong>Loan Amount:</strong> {loan.loanAmount}</p>
-                <p><strong>Interest Rate:</strong> {loan.annualInterestRate}%</p>
-                <p><strong>EMI Amount:</strong> {loan.emiAmount}</p>
-                <p><strong>Total EMI Paid:</strong> {totalEmiPaid}</p>
-                <p><strong>Current Month:</strong> {currentMonth}</p>
-                <p><strong>Current Balance:</strong> {currentBalance || 'Calculating...'}</p>
-                <p><strong>Months Left:</strong> {monthsLeft !== null ? monthsLeft : 'Calculating...'}</p>
+                <div>
+                    <h2 className="text-xl font-semibold mb-2">Sanctioned Loan details</h2>
+                    <p><strong>Loan Amount:</strong> {loan.loanAmount}</p>
+                    <p><strong>Interest Rate:</strong> {loan.annualInterestRate}%</p>
+                    <p><strong>EMI Amount:</strong> {loan.emiAmount}</p>
+                    <p><strong>Total EMI Number:</strong> {monthsLeft}</p>
+                    <p><strong>Loan Start Date:</strong> {new Date(loan.loanStartDate).toLocaleDateString('default', { month: 'long', year: 'numeric' })}</p>
+                    <p><strong>Loan End Date:</strong> {loanEndMonth}</p>
+                    <p><strong>Total Payment:</strong> {(parseFloat(loan.loanAmount) + parseFloat(totalInterestPaid)).toFixed(2)}</p>
+                </div>
+                <div>
+                    <h2 className="text-xl font-semibold mb-2">Current Details</h2>
+                    <p><strong>Current Date:</strong> {new Date().toLocaleDateString('default', { month: 'long', year: 'numeric' })}</p>
+                    <p><strong>Current Balance:</strong> {currentBalance || 'Calculating...'}</p>
+                    <p><strong>Total Capital Paid:</strong> {totalCapital}</p>
+                    <p><strong>Total Interest Paid:</strong> {totalInterestPaid}</p>
+                    <p><strong>Total Amount Paid:</strong> {totalEmiPaid}</p>
+                    <p><strong>Number of EMI Paid:</strong> {emIsPaid}</p>
+                    <p><strong>Months Left:</strong> {monthsLeft !== null ? (monthsLeft - emIsPaid) : 'Calculating...'}</p>
+                </div>
+                <div>
+                    <h2 className="text-xl font-semibold mb-2">Estimated Closing Details</h2>
+                    <p><strong>Loan End Date:</strong> {loanEndMonth}</p>
+                </div>
             </div>
             <div className="mt-4">
                 <Amortization loan={loan} currentMonth={currentMonth} />
