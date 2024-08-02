@@ -53,7 +53,7 @@ const LoansPage = () => {
                                 <td className="px-4 py-2 border-b">{loan.loanAmount}</td>
                                 <td className="px-4 py-2 border-b">{loan.annualInterestRate}%</td>
                                 <td className="px-4 py-2 border-b">{loan.emiAmount}</td>
-                                <td className="px-4 py-2 border-b">{loan.loanStartDate}</td>
+                                <td className="px-4 py-2 border-b">{loan.loanStartDate.split('T')[0]}</td>
                                 <td className="px-4 py-2 border-b">
                                     <Link href={`/loans/${loan.id}`} className="text-blue-500 hover:underline">
                                         View Details
