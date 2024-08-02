@@ -1,7 +1,8 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 
 const LoanForm = ({ loan, onSave, onClose }) => {
-    // Initialize state with loan data or default values
     const [loanForm, setLoanForm] = useState({
         loanName: '',
         loanAmount: '',
@@ -9,6 +10,7 @@ const LoanForm = ({ loan, onSave, onClose }) => {
         emiAmount: '',
         loanStartDate: '',
     });
+    const [errors, setErrors] = useState({});
 
     // Function to format date into YYYY-MM-DD
     const formatDate = (date) => {
@@ -42,11 +44,41 @@ const LoanForm = ({ loan, onSave, onClose }) => {
         setLoanForm({ ...loanForm, [name]: value });
     };
 
+    // Validate form data
+    const validateForm = () => {
+        const { loanAmount, annualInterestRate, emiAmount } = loanForm;
+        let newErrors = {};
+        let isValid = true;
+
+        if (emiAmount <= 0) {
+            newErrors.emiAmount = 'EMI amount must be greater than zero.';
+            isValid = false;
+        }
+
+        const monthlyInterestRate = parseFloat(annualInterestRate) / 12 / 100;
+        const interest = parseFloat(loanAmount) * monthlyInterestRate;
+
+        if (emiAmount <= interest) {
+            newErrors.emiAmount = 'EMI amount must be greater than the monthly interest. ' + interest.toFixed(2);
+            isValid = false;
+        }
+
+        if (parseFloat(loanAmount) <= emiAmount) {
+            newErrors.loanAmount = 'Loan amount must be greater than the EMI amount.';
+            isValid = false;
+        }
+
+        setErrors(newErrors);
+        return isValid;
+    };
+
     // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
-        onSave(loanForm);
-        onClose();
+        if (validateForm()) {
+            onSave(loanForm);
+            onClose();
+        }
     };
 
     return (
@@ -73,6 +105,7 @@ const LoanForm = ({ loan, onSave, onClose }) => {
                             onChange={handleInputChange}
                             className="border p-2 w-full"
                         />
+                        {errors.loanAmount && <p className="text-red-500 text-sm">{errors.loanAmount}</p>}
                     </div>
                     <div>
                         <label className="block">Annual Interest Rate:</label>
@@ -93,6 +126,7 @@ const LoanForm = ({ loan, onSave, onClose }) => {
                             onChange={handleInputChange}
                             className="border p-2 w-full"
                         />
+                        {errors.emiAmount && <p className="text-red-500 text-sm">{errors.emiAmount}</p>}
                     </div>
                     <div>
                         <label className="block">Loan Start Date:</label>
