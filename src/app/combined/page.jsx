@@ -3,46 +3,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import calculateAmortization from '@/lib/calculateAmortization';
 
 // Utility function to sort ledger entries by date
 const sortByDate = (entries) => {
     return entries.sort((a, b) => new Date(a.date) - new Date(b.date));
 };
 
-const calculateAmortization = (loan) => {
-    const amortizationSchedule = [];
-    const monthlyInterestRate = parseFloat(loan.annualInterestRate) / 12 / 100;
-    let remainingBalance = parseFloat(loan.loanAmount);
-    const emiAmount = parseFloat(loan.emiAmount);
-    const startDate = new Date(loan.loanStartDate);
-    let currentDate = new Date(startDate);
-
-    while (remainingBalance > 0) {
-        const interest = remainingBalance * monthlyInterestRate;
-        const principal = emiAmount - interest;
-        remainingBalance -= principal;
-        if (remainingBalance < 0) remainingBalance = 0;
-
-        amortizationSchedule.push({
-            date: currentDate.toISOString().split('T')[0],
-            amount: principal.toFixed(2),
-            interest: interest.toFixed(2),
-            emiToPay: emiAmount.toFixed(2),
-            balance: remainingBalance.toFixed(2),
-            loanName: loan.loanName
-        });
-        currentDate.setMonth(currentDate.getMonth() + 1);
-    }
-
-    return amortizationSchedule;
-};
-
 const CombinedAmortizationPage = () => {
     const [loans, setLoans] = useState([]);
-    const [amortizationSchedule, setAmortizationSchedule] = useState([]);
-    let totalLoans = 0;
-    let data = [];
-    let openingDate = '';
+    const [finalData, setFinalData] = useState([]);
 
     useEffect(() => {
         const fetchLoans = async () => {
@@ -54,15 +24,62 @@ const CombinedAmortizationPage = () => {
                 const result = await response.json();
                 setLoans(result.data);
 
+                let preData = [];
+
                 // Combine amortization schedules of all loans
-                const allSchedules = result.data.reduce((acc, loan) => {
-                    return acc.concat(calculateAmortization(loan));
-                }, []);
+                result.data.forEach(loan => {
+                    const creditAmount = parseFloat(loan.loanAmount);
+                    const principal = 0 - creditAmount;
+
+                    // Add initial loan entry
+                    preData.push({
+                        date: loan.loanStartDate.split('T')[0],
+                        description: `New Loan: ${loan.loanName} Start`,
+                        principalpaid: principal,
+                        emiToPay: 0,
+                        interest: 0,
+                        balance: creditAmount,
+                    });
+
+                    // Add amortization schedule entries
+                    const amortizationSchedule = calculateAmortization(loan);
+                    amortizationSchedule.forEach(transaction => {
+                        preData.push({
+                            date: transaction.date,
+                            description: `${loan.loanName} EMI`,
+                            principalpaid: parseFloat(transaction.principalPart),
+                            emiToPay: parseFloat(transaction.emiToPay),
+                            interest: parseFloat(transaction.interestPart),
+                            balance: parseFloat(transaction.balance),
+                        });
+                    });
+                });
 
                 // Sort by date
-                allSchedules.sort((a, b) => new Date(a.date) - new Date(b.date));
+                preData = sortByDate(preData);
 
-                setAmortizationSchedule(allSchedules);
+                // Calculate combined balance and total loans
+                let totalLoans = 0;
+                const data = preData.map(transaction => {
+                    // totalLoans += transaction.emiToPay;
+                    totalLoans -= transaction.principalpaid;
+                    return {
+                        ...transaction,
+                        totalLoans: totalLoans.toFixed(2)
+                    };
+                });
+
+                // Find the oldest date in the data array
+                const openingDate = data.length > 0 ? data[0].date : '';
+
+                // Add opening balance entry
+                const opening = [
+                    { date: openingDate, description: 'Opening Balance', principalpaid: 0, interest: 0, emiToPay: 0, balance: 0, totalLoans: '0.00' }
+                ];
+
+                // Add opening balance to the beginning of the data array
+                setFinalData([...opening, ...data]);
+
             } catch (error) {
                 console.error('Failed to fetch loans:', error);
             }
@@ -72,65 +89,28 @@ const CombinedAmortizationPage = () => {
     }, []);
 
     const getMonthClass = (date) => {
-        const month = new Date(date).getMonth();
+        const currentDate = new Date();
+        const entryDate = new Date(date);
+        const month = entryDate.getMonth();
+        const year = entryDate.getFullYear();
+
         const colors = [
-            'bg-red-100', 'bg-orange-100', 'bg-yellow-100', 'bg-green-100',
-            'bg-teal-100', 'bg-blue-100', 'bg-indigo-100', 'bg-purple-100',
-            'bg-pink-100', 'bg-gray-100', 'bg-red-200', 'bg-orange-200'
+            'bg-red-200', 'bg-cyan-200',   // January & February
+            'bg-orange-200', 'bg-blue-200', // March & April
+            'bg-yellow-200', 'bg-purple-200', // May & June
+            'bg-green-200', 'bg-pink-200',   // July & August
+            'bg-sky-200', 'bg-rose-200',    // September & October
+            'bg-indigo-200', 'bg-lime-200'   // November & December
+
         ];
-        return colors[month % colors.length];
+        let classNames = colors[month % colors.length];
+
+        if (month === currentDate.getMonth() && year === currentDate.getFullYear()) {
+            classNames += ' font-black';
+        }
+
+        return classNames;
     };
-
-    // Calculate opening balance and data array
-    loans.forEach(loan => {
-        const creditAmount = parseFloat(loan.loanAmount);
-        const principalpaid = 0 - creditAmount;
-        data.push({
-            date: loan.loanStartDate.split('T')[0],
-            description: `New Loan: ${loan.loanName} Start`,
-            principalpaid: principalpaid,
-            emiToPay: 0,
-            interest: 0,
-            balance: creditAmount,
-            totalLoans: totalLoans + creditAmount
-        });
-
-        totalLoans += creditAmount;
-    });
-
-    amortizationSchedule.forEach(transaction => {
-        const debitAmount = parseFloat(transaction.emiToPay);
-        const creditAmount = parseFloat(transaction.interest);
-        const balance = parseFloat(transaction.balance);
-
-        totalLoans -= debitAmount;
-        totalLoans += creditAmount;
-        const principalpaid = debitAmount - creditAmount;
-        data.push({
-            date: transaction.date,
-            description: `${transaction.loanName} EMI`,
-            principalpaid: principalpaid,
-            emiToPay: debitAmount,
-            interest: creditAmount,
-            balance: balance,
-            totalLoans: totalLoans
-        });
-    });
-
-    // Find the oldest date in the data array
-    if (data.length > 0) {
-        openingDate = sortByDate(data)[0].date;
-    }
-
-    // Add opening balance entry
-    const opening = [
-        { date: openingDate, description: 'Opening Balance', principalpaid: 0, interest: 0, emiToPay: 0, balance: 0, totalLoans: 0 }
-    ];
-
-    // Add opening balance to the beginning of the data array
-    data = [...opening, ...data];
-
-    const sortedData = sortByDate(data);
 
     return (
         <div className="container mx-auto p-4">
@@ -150,8 +130,8 @@ const CombinedAmortizationPage = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {sortedData.map((payment, index) => (
-                            <tr key={index} className={getMonthClass(payment.date)}>
+                        {finalData.map((payment, index) => (
+                            <tr key={index} className={`${getMonthClass(payment.date)}`} >
                                 <td className="px-4 py-2 border-b">{index + 1}</td>
                                 <td className="px-4 py-2 border-b">{payment.date}</td>
                                 <td className="px-4 py-2 border-b">{payment.description}</td>
@@ -159,13 +139,13 @@ const CombinedAmortizationPage = () => {
                                 <td className="px-4 py-2 border-b">{payment.interest.toFixed(2)}</td>
                                 <td className="px-4 py-2 border-b">{payment.emiToPay.toFixed(2)}</td>
                                 <td className="px-4 py-2 border-b">{payment.balance.toFixed(2)}</td>
-                                <td className="px-4 py-2 border-b">{payment.totalLoans.toFixed(2)}</td>
+                                <td className="px-4 py-2 border-b">{payment.totalLoans}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
-        </div>
+        </div >
     );
 };
 

@@ -25,9 +25,9 @@ const Amortization = ({ loan, currentMonth }) => {
             schedule.push({
                 installment: installmentNumber,
                 date: currentDate.toISOString().split('T')[0],
-                amount: emiAmount.toFixed(2),
+                principalAmount: principal.toFixed(2),
                 interest: interest.toFixed(2),
-                emiToPay: principal.toFixed(2),
+                emiToPay: emiAmount.toFixed(2),
                 balance: remainingBalance.toFixed(2),
             });
 
@@ -44,9 +44,10 @@ const Amortization = ({ loan, currentMonth }) => {
             schedule.push({
                 installment: installmentNumber,
                 date: currentDate.toISOString().split('T')[0],
-                amount: (principal + interest).toFixed(2),
+                // principalAmount: (principal + interest).toFixed(2),
+                principalAmount: (principal).toFixed(2),
                 interest: interest.toFixed(2),
-                emiToPay: principal.toFixed(2),
+                emiToPay: (principal + interest).toFixed(2),
                 balance: remainingBalance.toFixed(2),
             });
         }
@@ -74,7 +75,7 @@ const Amortization = ({ loan, currentMonth }) => {
                     <tr>
                         <th className="px-4 py-2 border-b w-10">Installment No</th>
                         <th className="px-4 py-2 border-b">Date</th>
-                        <th className="px-4 py-2 border-b">Amount</th>
+                        <th className="px-4 py-2 border-b">Principal Amount</th>
                         <th className="px-4 py-2 border-b">Interest</th>
                         <th className="px-4 py-2 border-b">EMI to Pay</th>
                         <th className="px-4 py-2 border-b">Balance</th>
@@ -85,7 +86,7 @@ const Amortization = ({ loan, currentMonth }) => {
                         <tr key={index} className={isCurrentMonth(payment.date) ? 'bg-yellow-100' : ''}>
                             <td className="px-4 py-2 border-b">{payment.installment}</td>
                             <td className="px-4 py-2 border-b">{payment.date}</td>
-                            <td className="px-4 py-2 border-b">{payment.amount}</td>
+                            <td className="px-4 py-2 border-b">{payment.principalAmount}</td>
                             <td className="px-4 py-2 border-b">{payment.interest}</td>
                             <td className="px-4 py-2 border-b">{payment.emiToPay}</td>
                             <td className="px-4 py-2 border-b">{payment.balance}</td>
